@@ -1,46 +1,13 @@
 import { z } from 'zod';
 
-// Enums
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-}
-
-export enum DealStage {
-  PROSPECT = 'PROSPECT',
-  ACTIVE = 'ACTIVE',
-  CLOSED = 'CLOSED',
-  LOST = 'LOST',
-}
-
-export enum SubscriptionStatus {
-  ACTIVE = 'ACTIVE',
-  CANCELED = 'CANCELED',
-  PAST_DUE = 'PAST_DUE',
-  TRIAL = 'TRIAL',
-}
-
-export enum PlanKey {
-  FREE = 'FREE',
-  PRO = 'PRO',
-  ENTERPRISE = 'ENTERPRISE',
-}
-
-export enum AuditAction {
-  USER_CREATED = 'USER_CREATED',
-  USER_UPDATED = 'USER_UPDATED',
-  USER_DELETED = 'USER_DELETED',
-  DEAL_CREATED = 'DEAL_CREATED',
-  DEAL_UPDATED = 'DEAL_UPDATED',
-  DEAL_DELETED = 'DEAL_DELETED',
-  STAGE_CHANGED = 'STAGE_CHANGED',
-  COMMISSION_CALCULATED = 'COMMISSION_CALCULATED',
-  USER_LOGGED_IN = 'USER_LOGGED_IN',
-  USER_LOGGED_OUT = 'USER_LOGGED_OUT',
-  ORGANIZATION_UPDATED = 'ORGANIZATION_UPDATED',
-  SUBSCRIPTION_CREATED = 'SUBSCRIPTION_CREATED',
-  SUBSCRIPTION_UPDATED = 'SUBSCRIPTION_UPDATED',
-}
+// Re-export Prisma enums to maintain compatibility
+export {
+  UserRole,
+  DealStage,
+  SubscriptionStatus,
+  PlanKey,
+  AuditAction,
+} from '@prisma/client';
 
 // Zod schemas
 export const PaginationSchema = z.object({
@@ -71,4 +38,4 @@ export interface PaginatedResponse<T> {
     total: number;
     totalPages: number;
   };
-} 
+}

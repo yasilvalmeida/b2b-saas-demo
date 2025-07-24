@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { LoginDto, RegisterDto, RefreshTokenDto, AuthResponse } from '@b2b-saas/dtos';
+import { LoginDto, RegisterDto, RefreshTokenDto, AuthResponseDto } from '@b2b-saas/dtos';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -12,17 +12,17 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'User login' })
-  @ApiResponse({ status: 200, description: 'Login successful', type: AuthResponse })
+  @ApiResponse({ status: 200, description: 'Login successful', type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(loginDto);
   }
 
   @Post('register')
   @ApiOperation({ summary: 'User registration' })
-  @ApiResponse({ status: 201, description: 'Registration successful', type: AuthResponse })
+  @ApiResponse({ status: 201, description: 'Registration successful', type: AuthResponseDto })
   @ApiResponse({ status: 409, description: 'User already exists' })
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResponse> {
+  async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
     return this.authService.register(registerDto);
   }
 

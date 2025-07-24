@@ -1,30 +1,36 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
+import { useEffect } from 'react';
 
 export default function HomePage() {
-  const router = useRouter()
-  const { user, isLoading } = useAuth()
-
   useEffect(() => {
-    if (!isLoading) {
-      if (user) {
-        router.push('/dashboard')
-      } else {
-        router.push('/login')
+    // Use window.location for immediate redirect
+    const checkAndRedirect = () => {
+      try {
+        const authData = localStorage.getItem('auth-storage');
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          if (parsed.state?.accessToken && parsed.state?.user) {
+            window.location.href = '/dashboard';
+            return;
+          }
+        }
+        // No valid auth data, redirect to login
+        window.location.href = '/login';
+      } catch (error) {
+        // Any error, redirect to login
+        window.location.href = '/login';
       }
-    }
-  }, [user, isLoading, router])
+    };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
+    // Execute immediately
+    checkAndRedirect();
+  }, []);
 
-  return null
-} 
+  // Show minimal loading while redirecting
+  return (
+    <div className='flex justify-center items-center min-h-screen'>
+      <div className='w-8 h-8 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin'></div>
+    </div>
+  );
+}

@@ -1,5 +1,14 @@
 import { z } from 'zod';
-import { IsString, IsNumber, IsEnum, IsOptional, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsOptional,
+  Min,
+  Max,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { DealStage } from './common';
 
 // Zod schemas
@@ -37,7 +46,8 @@ export const DealFiltersSchema = z.object({
 // Class-validator DTOs
 export class CreateDealDto {
   @IsString()
-  @Min(2)
+  @MinLength(2)
+  @MaxLength(200)
   title: string;
 
   @IsNumber()
@@ -65,7 +75,8 @@ export class CreateDealDto {
 
 export class UpdateDealDto {
   @IsString()
-  @Min(2)
+  @MinLength(2)
+  @MaxLength(200)
   @IsOptional()
   title?: string;
 
@@ -149,4 +160,4 @@ export interface DealWithCommissionResponse extends DealResponse {
 export type CreateDealRequest = z.infer<typeof CreateDealSchema>;
 export type UpdateDealRequest = z.infer<typeof UpdateDealSchema>;
 export type ChangeDealStageRequest = z.infer<typeof ChangeDealStageSchema>;
-export type DealFiltersRequest = z.infer<typeof DealFiltersSchema>; 
+export type DealFiltersRequest = z.infer<typeof DealFiltersSchema>;

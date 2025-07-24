@@ -1,4 +1,11 @@
-import { PrismaClient, UserRole, DealStage, PlanKey, SubscriptionStatus } from '@prisma/client';
+import {
+  PrismaClient,
+  UserRole,
+  DealStage,
+  PlanKey,
+  SubscriptionStatus,
+  AuditAction,
+} from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -18,7 +25,11 @@ async function main() {
       maxDeals: 10,
       maxUsers: 2,
       priceMonthly: 0,
-      features: ['Basic deal tracking', 'Commission calculations', 'Basic reporting'],
+      features: [
+        'Basic deal tracking',
+        'Commission calculations',
+        'Basic reporting',
+      ],
     },
   });
 
@@ -32,7 +43,13 @@ async function main() {
       maxDeals: 100,
       maxUsers: 10,
       priceMonthly: 99,
-      features: ['Advanced deal tracking', 'Commission calculations', 'Advanced reporting', 'Calendar integration', 'Audit logs'],
+      features: [
+        'Advanced deal tracking',
+        'Commission calculations',
+        'Advanced reporting',
+        'Calendar integration',
+        'Audit logs',
+      ],
     },
   });
 
@@ -46,7 +63,14 @@ async function main() {
       maxDeals: 1000,
       maxUsers: 100,
       priceMonthly: 299,
-      features: ['Unlimited deal tracking', 'Advanced commission calculations', 'Custom reporting', 'Full calendar integration', 'Advanced audit logs', 'Priority support'],
+      features: [
+        'Unlimited deal tracking',
+        'Advanced commission calculations',
+        'Custom reporting',
+        'Full calendar integration',
+        'Advanced audit logs',
+        'Priority support',
+      ],
     },
   });
 
@@ -206,7 +230,9 @@ async function main() {
   // Create KPI snapshots
   console.log('Creating KPI snapshots...');
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-  const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 7);
+  const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 7);
 
   const currentMonthStats = await prisma.deal.aggregate({
     where: {
@@ -300,25 +326,25 @@ async function main() {
   console.log('Creating audit logs...');
   const auditLogs = [
     {
-      action: 'USER_CREATED',
+      action: AuditAction.USER_CREATED,
       entity: 'User',
       entityId: admin.id,
       meta: { email: admin.email, role: admin.role },
     },
     {
-      action: 'USER_CREATED',
+      action: AuditAction.USER_CREATED,
       entity: 'User',
       entityId: user.id,
       meta: { email: user.email, role: user.role },
     },
     {
-      action: 'ORGANIZATION_UPDATED',
+      action: AuditAction.ORGANIZATION_UPDATED,
       entity: 'Organization',
       entityId: organization.id,
       meta: { name: organization.name },
     },
     {
-      action: 'SUBSCRIPTION_CREATED',
+      action: AuditAction.SUBSCRIPTION_CREATED,
       entity: 'Subscription',
       entityId: 'subscription-1',
       meta: { planKey: proPlan.key, status: SubscriptionStatus.ACTIVE },
@@ -340,9 +366,13 @@ async function main() {
   console.log(`- Organization: ${organization.name}`);
   console.log(`- Admin User: ${admin.email} (password: admin123)`);
   console.log(`- Regular User: ${user.email} (password: user123)`);
-  console.log(`- Plans: ${freePlan.name}, ${proPlan.name}, ${enterprisePlan.name}`);
+  console.log(
+    `- Plans: ${freePlan.name}, ${proPlan.name}, ${enterprisePlan.name}`
+  );
   console.log(`- Deals: ${deals.length} deals created`);
-  console.log(`- Commission Entries: ${closedDeals.length} entries for closed deals`);
+  console.log(
+    `- Commission Entries: ${closedDeals.length} entries for closed deals`
+  );
   console.log(`- Calendar Slots: ${calendarSlots.length} slots created`);
   console.log(`- Audit Logs: ${auditLogs.length} entries created`);
 }
@@ -354,4 +384,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-  }); 
+  });

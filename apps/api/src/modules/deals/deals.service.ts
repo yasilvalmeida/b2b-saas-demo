@@ -1,20 +1,27 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { 
-  CreateDealDto, 
-  UpdateDealDto, 
-  ChangeDealStageDto, 
+import {
+  CreateDealDto,
+  UpdateDealDto,
+  ChangeDealStageDto,
   DealFiltersDto,
-  DealResponse, 
+  DealResponse,
   DealWithCommissionResponse,
-  DealStage 
+  DealStage,
 } from '@b2b-saas/dtos';
 
 @Injectable()
 export class DealsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createDealDto: CreateDealDto, organizationId: string): Promise<DealResponse> {
+  async create(
+    createDealDto: CreateDealDto,
+    organizationId: string
+  ): Promise<DealResponse> {
     const deal = await this.prisma.deal.create({
       data: {
         ...createDealDto,
@@ -25,7 +32,10 @@ export class DealsService {
     return this.mapToDealResponse(deal);
   }
 
-  async findAll(organizationId: string, filters?: DealFiltersDto): Promise<DealResponse[]> {
+  async findAll(
+    organizationId: string,
+    filters?: DealFiltersDto
+  ): Promise<DealResponse[]> {
     const where: any = { organizationId };
 
     if (filters?.stage) {
@@ -49,10 +59,13 @@ export class DealsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return deals.map(deal => this.mapToDealResponse(deal));
+    return deals.map((deal) => this.mapToDealResponse(deal));
   }
 
-  async findOne(id: string, organizationId: string): Promise<DealWithCommissionResponse> {
+  async findOne(
+    id: string,
+    organizationId: string
+  ): Promise<DealWithCommissionResponse> {
     const deal = await this.prisma.deal.findFirst({
       where: { id, organizationId },
       include: {
@@ -64,7 +77,10 @@ export class DealsService {
       throw new NotFoundException('Deal not found');
     }
 
-    const commissionAmount = deal.commissions.reduce((sum, commission) => sum + commission.amount, 0);
+    const commissionAmount = deal.commissions.reduce(
+      (sum, commission) => sum + commission.amount,
+      0
+    );
     const isClosed = deal.stage === DealStage.CLOSED;
 
     return {
@@ -74,7 +90,11 @@ export class DealsService {
     };
   }
 
-  async update(id: string, updateDealDto: UpdateDealDto, organizationId: string): Promise<DealResponse> {
+  async update(
+    id: string,
+    updateDealDto: UpdateDealDto,
+    organizationId: string
+  ): Promise<DealResponse> {
     const deal = await this.prisma.deal.findFirst({
       where: { id, organizationId },
     });
@@ -91,7 +111,11 @@ export class DealsService {
     return this.mapToDealResponse(updatedDeal);
   }
 
-  async changeStage(id: string, changeStageDto: ChangeDealStageDto, organizationId: string): Promise<DealResponse> {
+  async changeStage(
+    id: string,
+    changeStageDto: ChangeDealStageDto,
+    organizationId: string
+  ): Promise<DealResponse> {
     const deal = await this.prisma.deal.findFirst({
       where: { id, organizationId },
     });
@@ -104,9 +128,12 @@ export class DealsService {
     this.validateStageTransition(deal.stage, changeStageDto.stage);
 
     const updateData: any = { stage: changeStageDto.stage };
-    
+
     // If moving to CLOSED stage, set closeDate if not provided
-    if (changeStageDto.stage === DealStage.CLOSED && !changeStageDto.closeDate) {
+    if (
+      changeStageDto.stage === DealStage.CLOSED &&
+      !changeStageDto.closeDate
+    ) {
       updateData.closeDate = new Date();
     } else if (changeStageDto.closeDate) {
       updateData.closeDate = new Date(changeStageDto.closeDate);
@@ -139,7 +166,10 @@ export class DealsService {
     });
   }
 
-  private validateStageTransition(currentStage: DealStage, newStage: DealStage): void {
+  private validateStageTransition(
+    currentStage: DealStage,
+    newStage: DealStage
+  ): void {
     const validTransitions = {
       [DealStage.PROSPECT]: [DealStage.ACTIVE, DealStage.LOST],
       [DealStage.ACTIVE]: [DealStage.CLOSED, DealStage.LOST],
@@ -148,7 +178,9 @@ export class DealsService {
     };
 
     if (!validTransitions[currentStage].includes(newStage)) {
-      throw new BadRequestException(`Invalid stage transition from ${currentStage} to ${newStage}`);
+      throw new BadRequestException(
+        `Invalid stage transition from ${currentStage} to ${newStage}`
+      );
     }
   }
 
@@ -185,4 +217,4 @@ export class DealsService {
       updatedAt: deal.updatedAt.toISOString(),
     };
   }
-} 
+}

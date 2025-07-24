@@ -1,18 +1,20 @@
-'use client'
+'use client';
 
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { AuthResponse, UserResponse } from '@b2b-saas/dtos'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { AuthResponse, UserResponse } from '@b2b-saas/dtos';
 
 interface AuthState {
-  user: UserResponse | null
-  accessToken: string | null
-  refreshToken: string | null
-  isLoading: boolean
-  isAuthenticated: boolean
-  login: (authData: AuthResponse) => void
-  logout: () => void
-  setLoading: (loading: boolean) => void
+  user: UserResponse | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  isHydrated: boolean;
+  login: (authData: AuthResponse) => void;
+  logout: () => void;
+  setLoading: (loading: boolean) => void;
+  setHydrated: (hydrated: boolean) => void;
 }
 
 export const useAuth = create<AuthState>()(
@@ -21,8 +23,9 @@ export const useAuth = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
-      isLoading: true,
+      isLoading: false, // Start with false to avoid infinite loading
       isAuthenticated: false,
+      isHydrated: false,
       login: (authData: AuthResponse) =>
         set({
           user: authData.user,
@@ -31,17 +34,24 @@ export const useAuth = create<AuthState>()(
           isAuthenticated: true,
           isLoading: false,
         }),
-      logout: () =>
+      logout: () => {
         set({
           user: null,
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
           isLoading: false,
-        }),
+        });
+        // Redirect to login page
+        window.location.href = '/login';
+      },
       setLoading: (loading: boolean) =>
         set({
           isLoading: loading,
+        }),
+      setHydrated: (hydrated: boolean) =>
+        set({
+          isHydrated: hydrated,
         }),
     }),
     {
@@ -52,6 +62,11 @@ export const useAuth = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHydrated(true);
+        }
+      },
     }
   )
-) 
+);

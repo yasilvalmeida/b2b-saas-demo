@@ -29,4 +29,4 @@ import { AuditModule } from './modules/audit/audit.module';
     AuditModule,
   ],
 })
-export class AppModule {} 
+export class AppModule {}
