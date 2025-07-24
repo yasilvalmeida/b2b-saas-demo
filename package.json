@@ -1,0 +1,36 @@
+{
+  "name": "b2b-saas-demo",
+  "version": "1.0.0",
+  "description": "Full B2B SaaS Demo - Next.js + NestJS + Postgres + Prisma",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down",
+    "db:reset": "docker-compose down && docker-compose up -d && npm run api:prisma:migrate && npm run api:prisma:seed",
+    "api:prisma:migrate": "cd apps/api && npm run prisma:migrate",
+    "api:prisma:seed": "cd apps/api && npm run prisma:seed",
+    "api:prisma:studio": "cd apps/api && npm run prisma:studio"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.16",
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.2",
+    "prettier": "^3.0.3",
+    "eslint": "^8.51.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

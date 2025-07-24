@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  passwordHash   String
+  role           UserRole @default(USER)
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deals        Deal[]
+  commissions  CommissionEntry[]
+  auditLogs    AuditLog[]
+  calendarSlots CalendarSlot[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  deals         Deal[]
+  kpiSnapshots  KpiSnapshot[]
+  auditLogs     AuditLog[]
+  subscriptions Subscription[]
+
+  @@map("organizations")
+}
+
+model Deal {
+  id             String    @id @default(cuid())
+  title          String
+  amount         Float
+  stage          DealStage @default(PROSPECT)
+  commissionRate Float     @default(10)
+  closeDate      DateTime?
+  description    String?
+  organizationId String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  commissions    CommissionEntry[]
+
+  @@map("deals")
+}
+
+model CommissionEntry {
+  id        String   @id @default(cuid())
+  dealId    String
+  userId    String
+  amount    Float
+  createdAt DateTime @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("commission_entries")
+}
+
+model KpiSnapshot {
+  id              String   @id @default(cuid())
+  organizationId  String
+  period          String   // Format: "YYYY-MM"
+  totalDeals      Int
+  closedDeals     Int
+  totalRevenue    Float
+  commissionsPaid Float
+  createdAt       DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, period])
+  @@map("kpi_snapshots")
+}
+
+model AuditLog {
+  id             String      @id @default(cuid())
+  organizationId String
+  userId         String
+  action         AuditAction
+  entity         String
+  entityId       String
+  meta           Json
+  createdAt      DateTime    @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+model Plan {
+  id           String   @id @default(cuid())
+  key          PlanKey  @unique
+  name         String
+  description  String
+  maxDeals     Int
+  maxUsers     Int
+  priceMonthly Float
+  features     String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  organizationId       String
+  planId               String
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model CalendarSlot {
+  id          String   @id @default(cuid())
+  userId      String
+  start       DateTime
+  end         DateTime
+  isBooked    Boolean  @default(false)
+  title       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_slots")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum DealStage {
+  PROSPECT
+  ACTIVE
+  CLOSED
+  LOST
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIAL
+}
+
+enum PlanKey {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum AuditAction {
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  DEAL_CREATED
+  DEAL_UPDATED
+  DEAL_DELETED
+  STAGE_CHANGED
+  COMMISSION_CALCULATED
+  USER_LOGGED_IN
+  USER_LOGGED_OUT
+  ORGANIZATION_UPDATED
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_UPDATED
+} 

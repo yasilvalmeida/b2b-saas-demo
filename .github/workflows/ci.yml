@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: b2b_saas_demo_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build shared packages
+      run: npm run build --workspace=packages/dtos
+
+    - name: Generate Prisma client
+      run: |
+        cd apps/api
+        npm run prisma:generate
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b2b_saas_demo_test
+
+    - name: Run database migrations
+      run: |
+        cd apps/api
+        npm run prisma:migrate
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b2b_saas_demo_test
+
+    - name: Run backend tests
+      run: |
+        cd apps/api
+        npm run test
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b2b_saas_demo_test
+        JWT_SECRET: test-secret-key
+
+    - name: Run backend e2e tests
+      run: |
+        cd apps/api
+        npm run test:e2e
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b2b_saas_demo_test
+        JWT_SECRET: test-secret-key
+
+    - name: Run frontend type check
+      run: |
+        cd apps/web
+        npm run typecheck
+
+    - name: Run frontend lint
+      run: |
+        cd apps/web
+        npm run lint
+
+    - name: Build frontend
+      run: |
+        cd apps/web
+        npm run build
+      env:
+        NEXT_PUBLIC_API_URL: http://localhost:3001
+
+    - name: Build backend
+      run: |
+        cd apps/api
+        npm run build
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build all packages
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          apps/api/dist/
+          apps/web/.next/
+          packages/dtos/dist/ 
