@@ -4,9 +4,9 @@
   "description": "Next.js Frontend for B2B SaaS Demo",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4000 -H 0.0.0.0",
+    "dev": "next dev -p 4002 -H 0.0.0.0",
     "build": "next build",
-    "start": "next start -p 4000",
+    "start": "next start -p 4002",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next"

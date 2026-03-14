@@ -7,6 +7,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/apps/api/src/main.js",
+    "dev": "nest start --watch",
     "start:dev": "nest start --watch --port 4001 --host 0.0.0.0 --entryFile dist/apps/api/src/main",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/api/src/main.js",
